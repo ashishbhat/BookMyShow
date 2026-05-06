@@ -32,7 +32,7 @@ function App() {
   const [error, setError] = useState('');
 
   const [query, setQuery] = useState('dune');
-  const [date, setDate] = useState('2026-05-06');
+  const [date, setDate] = useState('');
   const [movieResults, setMovieResults] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [movieListings, setMovieListings] = useState([]);
@@ -74,8 +74,12 @@ function App() {
     try {
       const results = await api(`/movies/search?query=${encodeURIComponent(query)}`);
       setMovieResults(results);
-      setSelectedMovie(null);
-      setMovieListings([]);
+      if (results.length > 0) {
+        await chooseMovie(results[0]);
+      } else {
+        setSelectedMovie(null);
+        setMovieListings([]);
+      }
       setSelectedListing(null);
       setSeatRows([]);
       setSelectedBooking(null);
@@ -196,7 +200,7 @@ function App() {
                 <input value={query} onChange={(event) => setQuery(event.target.value)} />
               </label>
               <label>
-                Date
+                Date optional
                 <input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
               </label>
               <button disabled={busy}>Search</button>
@@ -234,7 +238,15 @@ function App() {
                       <span>{listing.venueAddress}</span>
                     </button>
                   ))}
-                  {!movieListings.length && <Empty text="Select a movie to view listings." />}
+                  {!movieListings.length && (
+                    <Empty
+                      text={
+                        selectedMovie
+                          ? `No listings found for ${selectedMovie.name}${date ? ` on ${date}` : ''}.`
+                          : 'Select a movie to view listings.'
+                      }
+                    />
+                  )}
                 </div>
               </Step>
             </div>
